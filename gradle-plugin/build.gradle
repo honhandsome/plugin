@@ -8,11 +8,11 @@ gradlePlugin {
     plugins {
         application {
             id = 'com.tyjh.application'
-            implementationClass = 'com.tyjh.plugin.ApplicationPlugin'
+            implementationClass = 'com.tyjh.gradle.ApplicationPlugin'
         }
         library {
             id = 'com.tyjh.library'
-            implementationClass = 'com.tyjh.plugin.LibraryPlugin'
+            implementationClass = 'com.tyjh.gradle.LibraryPlugin'
         }
     }
 }
