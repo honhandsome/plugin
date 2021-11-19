@@ -6,6 +6,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.PluginAware
 
 class ModuleImporterPlugin implements Plugin<PluginAware> {
+
     @Override
     void apply(PluginAware target) {
         def localModuleFile = new File(target.rootDir, "module.local")
