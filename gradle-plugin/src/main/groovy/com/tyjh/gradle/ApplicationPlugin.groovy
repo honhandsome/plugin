@@ -19,13 +19,13 @@ import org.gradle.api.tasks.TaskAction
 class ApplicationPlugin extends ProjectPlugin {
 
     static class MyPrinterTask extends DefaultTask {
-        def outFile = new File(getProject().rootDir, 'depsTree.txt')
+        private File depsTreeFile = new File(getProject().rootDir, 'depsTree.txt')
 
         @TaskAction
         void walk() {
-            if (outFile.exists()) {
-                outFile.delete()
-                outFile.createNewFile()
+            if (depsTreeFile.exists()) {
+                depsTreeFile.delete()
+                depsTreeFile.createNewFile()
             }
             Configuration configuration = null
             project.configurations.each {
@@ -50,7 +50,7 @@ class ApplicationPlugin extends ProjectPlugin {
                     ComponentIdentifier componentIdentifier = componentResult.id
                     String node = calculateIndentation(level, componentResult.dependencies.size() > 0) + "$componentIdentifier.displayName ($componentResult.selectionReason)"
                     logger.quiet node
-                    outFile << node + '\n\n'
+                    depsTreeFile << node + '\n\n'
                     if (!componentIdentifier.displayName.startsWith("com.android.support")) {
                         traverseDependencies(level + 1, componentResult.dependencies)
                     }
@@ -58,7 +58,7 @@ class ApplicationPlugin extends ProjectPlugin {
                     ComponentSelector componentSelector = result.attempted
                     String node = calculateIndentation(level) + "$componentSelector.displayName (failed)"
                     logger.quiet node
-                    outFile << node + '\n\n'
+                    depsTreeFile << node + '\n\n'
                 }
             }
         }
@@ -111,8 +111,11 @@ class ApplicationPlugin extends ProjectPlugin {
                     println "输出依赖项开始"
                     try {
                         ResolutionResult resolutionResult = configuration.incoming.resolutionResult
-                        new File(project.rootDir, 'deps.txt').delete()
                         File depsFile = new File(project.rootDir, 'deps.txt')
+                        if (depsFile.exists()) {
+                            depsFile.delete()
+                            depsFile.createNewFile()
+                        }
                         def tmpList = []
                         resolutionResult.allComponents.sort().each {
                             tmpList += it.toString()
