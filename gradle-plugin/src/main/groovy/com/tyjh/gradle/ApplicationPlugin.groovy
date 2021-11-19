@@ -18,56 +18,6 @@ import org.gradle.api.tasks.TaskAction
 
 class ApplicationPlugin extends ProjectPlugin {
 
-    static class MyPrinterTask extends DefaultTask {
-        private File depsTreeFile = new File(getProject().rootDir, 'depsTree.txt')
-
-        @TaskAction
-        void walk() {
-            if (depsTreeFile.exists()) {
-                depsTreeFile.delete()
-                depsTreeFile.createNewFile()
-            }
-            Configuration configuration = null
-            project.configurations.each {
-                if (it.getName().toLowerCase().contains("releaseRuntimeClasspath".toLowerCase())) {
-                    configuration = it
-                }
-            }
-            configuration.canBeResolved = true
-            configuration.incoming.afterResolve {
-                logger.quiet 'afterResolve'
-            }
-            ResolutionResult resolutionResult = configuration.incoming.resolutionResult
-            ResolvedComponentResult root = resolutionResult.root
-            traverseDependencies(0, root.dependencies)
-            logger.quiet 'walk out'
-        }
-
-        private void traverseDependencies(int level, Set<? extends DependencyResult> results) {
-            for (DependencyResult result : results) {
-                if (result instanceof ResolvedDependencyResult) {
-                    ResolvedComponentResult componentResult = result.selected
-                    ComponentIdentifier componentIdentifier = componentResult.id
-                    String node = calculateIndentation(level, componentResult.dependencies.size() > 0) + "$componentIdentifier.displayName ($componentResult.selectionReason)"
-                    logger.quiet node
-                    depsTreeFile << node + '\n\n'
-                    if (!componentIdentifier.displayName.startsWith("com.android.support")) {
-                        traverseDependencies(level + 1, componentResult.dependencies)
-                    }
-                } else if (result instanceof UnresolvedDependencyResult) {
-                    ComponentSelector componentSelector = result.attempted
-                    String node = calculateIndentation(level) + "$componentSelector.displayName (failed)"
-                    logger.quiet node
-                    depsTreeFile << node + '\n\n'
-                }
-            }
-        }
-
-        private static String calculateIndentation(int level, boolean haveDeps) {
-            return '|   ' * (level > 0 ? (level - 1) : 0) + (haveDeps ? "+---" : "|   ")
-        }
-    }
-
     @Override
     boolean isApplication() {
         return true
@@ -76,7 +26,7 @@ class ApplicationPlugin extends ProjectPlugin {
     @Override
     void apply(Project project) {
         super.apply(project)
-        project.tasks.create('printDependencyList', MyPrinterTask.class)
+        project.tasks.create('printDependencyList', PrinterTask.class)
         project.gradle.addBuildListener(new BuildListener() {
 
             @Override
@@ -137,5 +87,55 @@ class ApplicationPlugin extends ProjectPlugin {
     @Override
     void addOthersPlugin(Project project) {
         super.addOthersPlugin(project)
+    }
+
+    static class PrinterTask extends DefaultTask {
+        private File depsTreeFile = new File(getProject().rootDir, 'depsTree.txt')
+
+        @TaskAction
+        void walk() {
+            if (depsTreeFile.exists()) {
+                depsTreeFile.delete()
+                depsTreeFile.createNewFile()
+            }
+            Configuration configuration = null
+            project.configurations.each {
+                if (it.getName().toLowerCase().contains("releaseRuntimeClasspath".toLowerCase())) {
+                    configuration = it
+                }
+            }
+            configuration.canBeResolved = true
+            configuration.incoming.afterResolve {
+                logger.quiet 'afterResolve'
+            }
+            ResolutionResult resolutionResult = configuration.incoming.resolutionResult
+            ResolvedComponentResult root = resolutionResult.root
+            traverseDependencies(0, root.dependencies)
+            logger.quiet 'walk out'
+        }
+
+        private void traverseDependencies(int level, Set<? extends DependencyResult> results) {
+            for (DependencyResult result : results) {
+                if (result instanceof ResolvedDependencyResult) {
+                    ResolvedComponentResult componentResult = result.selected
+                    ComponentIdentifier componentIdentifier = componentResult.id
+                    String node = calculateIndentation(level, componentResult.dependencies.size() > 0) + "$componentIdentifier.displayName ($componentResult.selectionReason)"
+                    logger.quiet node
+                    depsTreeFile << node + '\n\n'
+                    if (!componentIdentifier.displayName.startsWith("com.android.support")) {
+                        traverseDependencies(level + 1, componentResult.dependencies)
+                    }
+                } else if (result instanceof UnresolvedDependencyResult) {
+                    ComponentSelector componentSelector = result.attempted
+                    String node = calculateIndentation(level) + "$componentSelector.displayName (failed)"
+                    logger.quiet node
+                    depsTreeFile << node + '\n\n'
+                }
+            }
+        }
+
+        private static String calculateIndentation(int level, boolean haveDeps) {
+            return '|   ' * (level > 0 ? (level - 1) : 0) + (haveDeps ? "+---" : "|   ")
+        }
     }
 }
