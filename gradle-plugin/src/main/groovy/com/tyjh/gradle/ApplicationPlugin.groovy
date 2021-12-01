@@ -85,8 +85,8 @@ class ApplicationPlugin extends ProjectPlugin {
     }
 
     @Override
-    void addOthersPlugin(Project project) {
-        super.addOthersPlugin(project)
+    void doConfig(Project project, Extension extension) {
+        super.doYPPConfig(project, extension)
     }
 
     static class PrinterTask extends DefaultTask {
