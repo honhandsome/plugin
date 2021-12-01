@@ -43,7 +43,7 @@ abstract class ProjectPlugin implements Plugin<Project> {
         extension.defaultConfig.javaCompileOptions.annotationProcessorOptions.arguments.put "AROUTER_MODULE_NAME", project.getName()
 
         project.afterEvaluate {
-            doConfig(project, project.extensions.getByName("config"))
+            doConfig(project, project.config)
         }
     }
 
