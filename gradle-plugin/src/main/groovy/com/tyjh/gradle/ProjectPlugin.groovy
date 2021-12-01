@@ -48,21 +48,28 @@ abstract class ProjectPlugin implements Plugin<Project> {
     }
 
     void doConfig(Project project, Extension extension) {
+        //Kotlin
+        if (extension.Kotlin) {
+            println "Project ${project.getName()} set Kotlin"
+            project.getPlugins().apply(KotlinAndroidPluginWrapper.class)
+            project.getPlugins().apply(AndroidExtensionsSubpluginIndicator.class)
+            project.getPlugins().apply(Kapt3GradleSubplugin.class)
+        }
         //ARouter
         if (extension.ARouter) {
             println "Project ${project.getName()} set ARouter"
             project.getPlugins().apply(PluginLaunch.class)
             String moduleName = project.getName()
-            project.extensions.getByType(KaptExtension.class).arguments(new Function1<KaptAnnotationProcessorOptions, Unit>() {
-                @Override
-                Unit invoke(KaptAnnotationProcessorOptions kaptAnnotationProcessorOptions) {
-                    kaptAnnotationProcessorOptions.arg("AROUTER_MODULE_NAME", moduleName)
-                    return null
-                }
-            })
             project.dependencies.add('implementation', 'com.alibaba:arouter-api:1.5.1')
             project.dependencies.add('annotationProcessor', 'com.alibaba:arouter-compiler:1.5.1')
             if (extension.Kotlin) {
+                project.extensions.getByType(KaptExtension.class).arguments(new Function1<KaptAnnotationProcessorOptions, Unit>() {
+                    @Override
+                    Unit invoke(KaptAnnotationProcessorOptions kaptAnnotationProcessorOptions) {
+                        kaptAnnotationProcessorOptions.arg("AROUTER_MODULE_NAME", moduleName)
+                        return null
+                    }
+                })
                 project.dependencies.add('kapt', 'com.alibaba:arouter-compiler:1.5.1')
             }
         }
@@ -75,13 +82,6 @@ abstract class ProjectPlugin implements Plugin<Project> {
             if (extension.Kotlin) {
                 project.dependencies.add('kapt', 'com.jakewharton:butterknife-compiler:10.2.1')
             }
-        }
-        //Kotlin
-        if (extension.Kotlin) {
-            println "Project ${project.getName()} set Kotlin"
-            project.getPlugins().apply(KotlinAndroidPluginWrapper.class)
-            project.getPlugins().apply(AndroidExtensionsSubpluginIndicator.class)
-            project.getPlugins().apply(Kapt3GradleSubplugin.class)
         }
     }
 }
