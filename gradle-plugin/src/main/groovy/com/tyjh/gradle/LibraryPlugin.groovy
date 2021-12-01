@@ -13,7 +13,7 @@ class LibraryPlugin extends ProjectPlugin {
 
     @Override
     void doConfig(Project project, Extension extension) {
-        super.doYPPConfig(project, extension)
+        super.doConfig(project, extension)
         configUploadArchives(project)
     }
 
